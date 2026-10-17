@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STI Student Hub & Merchandise Portal</title>
+    <!-- CSS Link -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <!-- ==========================================================================
+         VIEW 1: SIMULATED LOGIN PAGE
+         ========================================================================== -->
+    <div id="login-view" class="page-view active login-view">
+        <div class="login-card grid grid-2">
+            
+            <div class="login-banner">
+                <div class="login-banner-text">
+                    <h2>Student Hub</h2>
+                    <p>Access your billing details, class schedule, tuition fees, and order official school merchandise in one unified platform.</p>
+                </div>
+                <div style="font-size: 0.8rem; color: rgba(255,255,255,0.5);">
+                    © 2026 STI Student Hub. All rights reserved.
+                </div>
+            </div>
+
+            
+            <div class="login-form-side">
+                <div class="login-header">
+                    <h3>Welcome Back</h3>
+                    <p>Please enter your student credentials to continue.</p>
+                </div>
+                
+                <form id="login-form" onsubmit="event.preventDefault(); handleLogin();">
+                    <div class="form-group">
+                        <label for="student-username">Student ID / Email</label>
+                        <input type="text" id="student-username" class="input-control" placeholder="e.g. 02000300183" required value="02000300183">
+                    </div>
+                    <div class="form-group">
+                        <label for="student-password">Portal Password</label>
+                        <input type="password" id="student-password" class="input-control" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" required value="student123">
+                    </div>
+                    
+                    <div class="login-options">
+                        <label class="checkbox-container">
+                            <input type="checkbox" id="remember-me" checked> Remember me
+                        </label>
+                        <a href="#" class="forgot-pass" onclick="showNotification('Password recovery link sent to your registered email.', 'info')">Forgot password?</a>
+                    </div>
+                    
+                    <div class="login-actions">
+                        <button type="submit" class="btn btn-primary w-full" style="height: 48px;">
+                            Sign In
+                        </button>
+                        
+                        <div class="divider">OR SIGN IN WITH</div>
+                        
+                        <button type="button" class="btn microsoft-btn w-full" style="height: 48px;" onclick="handleMicrosoftLogin()">
+                            <svg width="20" height="20" viewBox="0 0 23 23" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M0 0H11V11H0V0Z" fill="#F25022"/>
+                                <path d="M12 0H23V11H12V0Z" fill="#7FBA00"/>
+                                <path d="M0 12H11V23H0V12Z" fill="#00A4EF"/>
+                                <path d="M12 12H23V23H12V12Z" fill="#FFB900"/>
+                            </svg>
+                            Sign in with Microsoft
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ==========================================================================
+         VIEW 2: MAIN PORTAL SHELL (NAVBAR + APP CONTENT PAGES)
+         ========================================================================== -->
+    <div id="portal-view" class="page-view">
+        
+        <header>
+            <div class="header-top">
+                <div class="container flex align-center justify-between">
+                    
+                    <div class="portal-title" onclick="switchPage('home')">Student Hub</div>
+
+                    <div class="search-bar">
+                        <input type="text" id="global-search" placeholder="Search merchandise, FAQs, payments..." onkeyup="handleGlobalSearch(event)">
+                        <svg viewBox="0 0 24 24"><path d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z"/></svg>
+                    </div>
+
+                    
+                    <div class="nav-actions">
+                        
+                        <div style="position: relative;">
+                            <button class="btn-icon" onclick="toggleDropdown('dropdown-notifications')">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                                <span class="badge-dot" id="noti-dot"></span>
+                            </button>
+                            <!-- Notifications Dropdown -->
+                            <div class="header-dropdown-panel" id="dropdown-notifications">
+                                <div class="dropdown-header-row">
+                                    <h4>Notifications</h4>
+                                    <span style="font-size: 0.75rem; color: var(--sti-blue); cursor: pointer;" onclick="clearNotifications()">Clear all</span>
+                                </div>
+                                <div class="dropdown-items-list" id="notifications-list">
+                                    <!-- Populated by JS -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Wishlist Heart -->
+                        <div style="position: relative;">
+                            <button class="btn-icon" onclick="toggleDropdown('dropdown-wishlist')">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                                <span class="badge-count" id="wishlist-count">0</span>
+                            </button>
+                            <!-- Wishlist Dropdown -->
+                            <div class="header-dropdown-panel" id="dropdown-wishlist">
+                                <div class="dropdown-header-row">
+                                    <h4>My Wishlist</h4>
+                                    <span class="badge badge-gold" id="wishlist-badge-qty">0 items</span>
+                                </div>
+                                <div class="dropdown-items-list" id="wishlist-dropdown-items">
+                                    <!-- Dynamic -->
+                                </div>
+                                <div class="dropdown-footer">
+                                    <button class="btn btn-primary btn-outline w-full" onclick="switchPage('shop'); toggleDropdown();">Shop More</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Shopping Cart -->
+                        <div style="position: relative;">
+                            <button class="btn-icon" onclick="toggleDropdown('dropdown-cart')">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+                                <span class="badge-count" id="cart-count">0</span>
+                            </button>
+                            <!-- Cart Dropdown -->
+                            <div class="header-dropdown-panel" id="dropdown-cart">
+                                <div class="dropdown-header-row">
+                                    <h4>Shopping Cart</h4>
+                                    <span class="badge badge-blue" id="cart-badge-qty">0 items</span>
+                                </div>
+                                <div class="dropdown-items-list" id="cart-dropdown-items">
+                                    <!-- Dynamic -->
+                                </div>
+                                <div class="dropdown-footer">
+                                    <div class="flex justify-between" style="font-weight: 700; margin-bottom: 0.75rem;">
+                                        <span>Total Amount:</span>
+                                        <span id="cart-dropdown-total" style="color: var(--sti-blue);">₱0.00</span>
+                                    </div>
+                                    <div class="flex gap-2">
+                                        <button class="btn btn-outline w-full" style="padding: 0.5rem;" onclick="switchPage('cart'); toggleDropdown();">View Cart</button>
+                                        <button class="btn btn-primary w-full" style="padding: 0.5rem;" onclick="switchPage('checkout'); toggleDropdown();">Checkout</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- User Profile Dropdown -->
+                        <div style="position: relative;">
+                            <button class="btn-icon" onclick="toggleDropdown('dropdown-profile')">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                            </button>
+                            <!-- Profile Dropdown -->
+                            <div class="header-dropdown-panel" id="dropdown-profile" style="width: 280px;">
+                                <div class="flex align-center gap-2" style="border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1rem;">
+                                    <div class="student-avatar" style="width:48px; height:48px; font-size:1.2rem; border-width:2px;">JD</div>
+                                    <div>
+                                        <h4 style="font-size: 0.95rem; margin-bottom: 0.1rem;" id="user-display-name">Ralphcj Paulino</h4>
+                                        <p style="font-size: 0.75rem; color: var(--text-secondary);" id="user-display-id">02000300183</p>
+                                    </div>
+                                </div>
+                                <div class="flex flex-column gap-2" style="font-size: 0.85rem; font-weight: 500; color: var(--text-secondary);">
+                                    <div class="flex justify-between">
+                                        <span>Section:</span>
+                                        <span style="font-weight:700; color:var(--text-primary);" id="user-display-section">BSCS-401A</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>Tuition Status:</span>
+                                        <span class="badge badge-danger" id="user-display-tuition">Unpaid</span>
+                                    </div>
+                                </div>
+                                <div class="dropdown-footer">
+                                    <button class="btn btn-outline btn-dark w-full" onclick="handleLogout()">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                                        Log Out
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page Selection Navigation Links -->
+            <div class="header-bottom">
+                <div class="container flex align-center justify-between">
+                    <ul class="nav-menu">
+                        <li class="nav-item active" id="nav-home" onclick="switchPage('home')">Home Dashboard</li>
+                        <li class="nav-item" id="nav-shop" onclick="switchPage('shop')">Merch Shop</li>
+                        <li class="nav-item" id="nav-tuition" onclick="switchPage('tuition')">Tuition & Billing</li>
+                        <li class="nav-item" id="nav-orders" onclick="switchPage('orders')">Track Orders</li>
+                        <li class="nav-item" id="nav-help" onclick="switchPage('help')">Help Center</li>
+                    </ul>
+                    
+                    <div style="font-size: 0.8rem; font-weight: 600; color: var(--sti-blue);"></div>
+                </div>
+            </div>
+        </header>
+
+        <!-- MAIN LAYOUT VIEWS CONTAINER -->
+        <main class="container" style="flex: 1; display: flex; flex-direction: column;">
+            
+            <!-- ==========================================================================
+                 PAGE: HOME VIEW
+                 ========================================================================== -->
+            <section id="page-home" class="page-view active">
+                <div class="home-layout">
+                    <!-- Left Side Column -->
+                    <div style="display: flex; flex-direction: column; gap: 2rem;">
+                        <!-- Promo Slideshow -->
+                        <div class="promo-slider">
+                            <!-- Slide 1 -->
+                            <div class="slide active" style="background-image: linear-gradient(rgba(10,57,123,0.8), rgba(10,57,123,0.4)), url('https://images.unsplash.com/photo-1541339907198-e08756dedf3f?q=80&w=800&auto=format&fit=crop');">
+                                <div class="slide-content">
+                                    <span class="badge badge-gold" style="margin-bottom: 1rem;">EXCLUSIVE OFFER</span>
+                                    <h2>Official STI Merchandise</h2>
+                                    <p>Get ready for STI Sportsfest & College Week! Explore uniforms, limited hoodies, and accessories.</p>
+                                    <button class="btn btn-secondary" onclick="switchPage('shop')">Shop Collection Now</button>
+                                </div>
+                                <div class="slide-overlay"></div>
+                            </div>
+                            <!-- Slide 2 -->
+                            <div class="slide" style="background-image: linear-gradient(rgba(5,28,62,0.9), rgba(10,57,123,0.4)), url('https://images.unsplash.com/photo-1434030216411-0b793f4b4173?q=80&w=800&auto=format&fit=crop');">
+                                <div class="slide-content">
+                                    <span class="badge badge-blue" style="background-color:rgba(255,255,255,0.2); color:#FFF; margin-bottom: 1rem;">FINANCIAL HUB</span>
+                                    <h2>Tuition & Installments</h2>
+                                    <p>Avoid long queues! Settle your balances instantly with GCash, PayMaya, or Credit Cards in our billing center.</p>
+                                    <button class="btn btn-secondary" onclick="switchPage('tuition')">Pay Account Balance</button>
+                                </div>
+                                <div class="slide-overlay"></div>
+                            </div>
+                            <!-- Slide 3 -->
+                            <div class="slide" style="background-image: linear-gradient(rgba(17,24,39,0.85), rgba(10,57,123,0.5)), url('https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=800&auto=format&fit=crop');">
+                                <div class="slide-content">
+                                    <span class="badge badge-gold" style="margin-bottom: 1rem;">NEW COMMENCEMENT</span>
+                                    <h2>Welcome, STIers!</h2>
+                                    <p>Enjoy secondary digital portals, unified payment processing, and interactive merchandise trackers today.</p>
+                                    <button class="btn btn-secondary" onclick="switchPage('help')">Visit Support Desk</button>
+                                </div>
+                                <div class="slide-overlay"></div>
+                            </div>
+                            <!-- Slider Dots -->
+                            <div class="slider-dots">
+                                <div class="slider-dot active" onclick="setSlide(0)"></div>
+                                <div class="slider-dot" onclick="setSlide(1)"></div>
+                                <div class="slider-dot" onclick="setSlide(2)"></div>
+                            </div>
+                        </div>
+
+                        <!-- Featured Products Panel -->
+                        <div>
+                            <div class="section-header">
+                                <h3>Featured STI Merchandise</h3>
+                                <a href="#" style="font-weight: 600; color: var(--sti-blue);" onclick="switchPage('shop')">View All Products â†’</a>
+                            </div>
+                            <div class="featured-grid" id="home-featured-grid">
+                                <!-- Populated dynamically by app.js -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Side Column (Widgets) -->
+                    <div class="side-panel">
+                        <!-- Quick Payment Status widget -->
+                        <div class="card payment-status-card">
+                            <div class="status-indicator">
+                                <div class="indicator-dot" id="home-status-dot" style="background-color: var(--danger); color: var(--danger);"></div>
+                                <span id="home-status-text">Not Fully Paid</span>
+                            </div>
+                            <h4 style="font-size: 0.95rem; opacity: 0.9; margin-bottom: 0.25rem;">CURRENT OUTSTANDING BALANCE</h4>
+                            <h2 style="font-size: 2.2rem; font-weight: 800; color: var(--sti-yellow);" id="home-balance-val">₱18,500.00</h2>
+                            
+                            <div class="payment-due-info">
+                                <div class="flex justify-between" style="margin-bottom: 0.5rem;">
+                                    <span>Next Due Date:</span>
+                                    <strong style="color:#FFF;" id="home-due-date">June 15, 2026</strong>
+                                </div>
+                                <button class="btn btn-secondary w-full" style="margin-top: 0.75rem;" onclick="switchPage('tuition')">Settle Payments</button>
+                            </div>
+                        </div>
+
+                        <!-- Mini Interactive Calendar -->
+                        <div class="card calendar-widget">
+                            <div class="calendar-header">
+                                <span id="mini-calendar-month">September 2026</span>
+                                <div class="flex gap-2">
+                                    <button class="btn-icon" style="width:28px; height:28px;" onclick="changeCalendarMonth(-1)">‹</button>
+                                    <button class="btn-icon" style="width:28px; height:28px;" onclick="changeCalendarMonth(1)">›</button>
+                                </div>
+                            </div>
+                            <div class="calendar-grid" id="mini-calendar-grid">
+                                <!-- Calendar Dates populated by JS -->
+                            </div>
+                            <div style="margin-top: 1rem; font-size: 0.75rem; border-top: 1px solid var(--border-color); padding-top: 0.75rem;">
+                                <div class="flex align-center gap-2" style="margin-bottom: 0.25rem;">
+                                    <span class="calendar-day active-deadline" style="width:14px; height:14px; border-radius:50%; font-size:0; aspect-ratio:1;"></span>
+                                    <span>Tuition Payment Deadline</span>
+                                </div>
+                                <div class="flex align-center gap-2">
+                                    <span class="calendar-day active-payment" style="width:14px; height:14px; border-radius:50%; font-size:0; aspect-ratio:1;"></span>
+                                    <span>Registered Payment Dates</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Announcements widget -->
+                        <div class="card announcements-widget">
+                            <h4 class="filter-title" style="margin-bottom: 1rem;">Campus Announcements</h4>
+                            <div class="announcement-list">
+                                <div class="announcement-item">
+                                    <div class="announcement-meta">
+                                        <span class="badge badge-gold" style="font-size:0.6rem; padding: 1px 4px;">Important</span>
+                                        <span>May 20, 2026</span>
+                                    </div>
+                                    <div class="announcement-title">Uniform Regulations for SY 2026</div>
+                                    <p class="announcement-desc">Starting June, all students must follow official uniform configurations. Ordering merch is currently discounted.</p>
+                                </div>
+                                <div class="announcement-item">
+                                    <div class="announcement-meta">
+                                        <span class="badge badge-blue" style="font-size:0.6rem; padding: 1px 4px;">Finance</span>
+                                        <span>May 18, 2026</span>
+                                    </div>
+                                    <div class="announcement-title">Installment Plan Surcharge Waived</div>
+                                    <p class="announcement-desc">Students paying their installment fees online will experience zero processing surcharges.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==========================================================================
+                 PAGE: SHOP VIEW
+                 ========================================================================== -->
+            <section id="page-shop" class="page-view">
+                <div class="shop-layout">
+                    <!-- Filters Sidebar -->
+                    <aside class="shop-sidebar card">
+                        <!-- Category Filter -->
+                        <div class="filter-section">
+                            <h4 class="filter-title">Merch Category</h4>
+                            <div class="category-list">
+                                <div class="category-btn active" onclick="filterByCategory('all', this)">
+                                    <span>All Merchandise</span>
+                                    <span class="badge badge-blue" id="cat-cnt-all">0</span>
+                                </div>
+                                <div class="category-btn" onclick="filterByCategory('uniforms', this)">
+                                    <span>Uniforms</span>
+                                    <span class="badge badge-blue" id="cat-cnt-uniforms">0</span>
+                                </div>
+                                <div class="category-btn" onclick="filterByCategory('jackets', this)">
+                                    <span>Jackets & Hoodies</span>
+                                    <span class="badge badge-blue" id="cat-cnt-jackets">0</span>
+                                </div>
+                                <div class="category-btn" onclick="filterByCategory('accessories', this)">
+                                    <span>Accessories</span>
+                                    <span class="badge badge-blue" id="cat-cnt-accessories">0</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Size Filter -->
+                        <div class="filter-section">
+                            <h4 class="filter-title">Select Size</h4>
+                            <div class="size-selector-grid">
+                                <button class="size-btn active" onclick="filterBySize('all', this)">All</button>
+                                <button class="size-btn" onclick="filterBySize('S', this)">S</button>
+                                <button class="size-btn" onclick="filterBySize('M', this)">M</button>
+                                <button class="size-btn" onclick="filterBySize('L', this)">L</button>
+                            </div>
+                        </div>
+
+                        <!-- Price Filter -->
+                        <div class="filter-section">
+                            <h4 class="filter-title">Max Price</h4>
+                            <div class="price-range">
+                                <input type="range" id="price-slider" class="price-slider" min="100" max="2500" value="2500" step="50" oninput="handlePriceFilter(this.value)">
+                                <div class="price-values">
+                                    <span>₱100</span>
+                                    <span id="price-filter-display" style="color: var(--sti-blue);">₱2,500</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button class="btn btn-outline w-full" style="margin-top: 1rem;" onclick="resetFilters()">Reset Filters</button>
+                    </aside>
+
+                    <!-- Product Grid Section -->
+                    <div>
+                        <div class="section-header">
+                            <h3>Merchandise Shop</h3>
+                            <span style="font-weight: 500; font-size: 0.9rem; color: var(--text-secondary);" id="shop-results-count">Showing 6 items</span>
+                        </div>
+                        <div class="featured-grid" id="shop-products-grid" style="grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));">
+                            <!-- Populated dynamically by app.js -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==========================================================================
+                 PAGE: TUITION FEES & ACADEMIC VIEW
+                 ========================================================================== -->
+            <section id="page-tuition" class="page-view">
+                <div class="tuition-layout">
+                    <!-- Left Side Column: Summaries & Payments Ledger -->
+                    <div style="display: flex; flex-direction: column; gap: 2rem;">
+                        
+                        <!-- Tuition Account Summary -->
+                        <div class="card tuition-overview-card">
+                            <div class="section-header" style="margin-bottom: 0;">
+                                <h3 style="font-size:1.3rem;">Student Academic Profile</h3>
+                            </div>
+                            
+                            <!-- Academic profile card badge -->
+                            <div class="student-badge-card">
+                                <div class="student-avatar" id="tuition-avatar">JD</div>
+                                <div class="student-meta-details">
+                                    <h4 id="tuition-name">Ralphcj Paulino</h4>
+                                    <p>ID: <strong id="tuition-id">02000300183</strong></p>
+                                    <p>Section: <strong id="tuition-section">BSCS-401A</strong></p>
+                                </div>
+                            </div>
+
+                            <!-- Financial balances breakdown -->
+                            <div class="balance-grid">
+                                <div class="balance-item">
+                                    <div class="balance-label">Total Assessment Fee</div>
+                                    <div class="balance-val" id="tuition-total-assessment">₱26,500.00</div>
+                                </div>
+                                <div class="balance-item paid">
+                                    <div class="balance-label">Paid to Date</div>
+                                    <div class="balance-val" id="tuition-paid-assessment" style="color: var(--success);">₱8,000.00</div>
+                                </div>
+                                <div class="balance-item due">
+                                    <div class="balance-label">Current Balance Due</div>
+                                    <div class="balance-val" id="tuition-due-assessment" style="color: var(--danger);">₱18,500.00</div>
+                                </div>
+                                <div class="balance-item">
+                                    <div class="balance-label">Next Installment Date</div>
+                                    <div class="balance-val" id="tuition-due-date" style="font-size:1.15rem; font-weight:700;">June 15, 2026</div>
+                                </div>
+                            </div>
+
+                            <button class="btn btn-secondary w-full" style="height: 48px;" onclick="openPaymentModal()">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect><line x1="12" y1="10" x2="12" y2="10"></line><line x1="8" y1="14" x2="16" y2="14"></line></svg>
+                                MAKE AN ONLINE PAYMENT
+                            </button>
+                        </div>
+
+                        <!-- Tuition Payments Ledger Log -->
+                        <div class="card">
+                            <div class="section-header">
+                                <h3 style="font-size: 1.2rem;">Tuition Payment History Ledger</h3>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="payments-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Transaction Date</th>
+                                            <th>Description</th>
+                                            <th>Amount Paid</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="payments-history-rows">
+                                        <!-- Dynamic -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Side Column: Large Payment Calendar Schedule -->
+                    <div style="display: flex; flex-direction: column; gap: 2rem;">
+                        <!-- Full Payment Calendar Widget -->
+                        <div class="card">
+                            <div class="section-header">
+                                <h3 style="font-size:1.2rem;">Academic Due Dates & Schedules</h3>
+                            </div>
+                            
+                            <!-- Calendar header navigation -->
+                            <div class="calendar-header" style="margin-bottom: 1.5rem;">
+                                <span style="font-size: 1.2rem;" id="large-calendar-month">September 2026</span>
+                                <div class="flex gap-2">
+                                    <button class="btn-icon" onclick="changeCalendarMonth(-1)">‹</button>
+                                    <button class="btn-icon" onclick="changeCalendarMonth(1)">›</button>
+                                </div>
+                            </div>
+
+                            <!-- Calendar table grid -->
+                            <div class="calendar-grid" id="large-calendar-grid" style="gap: 8px; font-size: 0.95rem;">
+                                <!-- Populate via JS -->
+                            </div>
+
+                            <div style="margin-top: 1.5rem; font-size: 0.85rem; border-top:1px solid var(--border-color); padding-top:1rem;" class="flex flex-column gap-2">
+                                <div class="flex align-center gap-2">
+                                    <span class="calendar-day active-deadline" style="width:20px; height:20px; font-size:0;"></span>
+                                    <strong>Red Highlight:</strong> Tuition Payment Installment Due Date (₱6,166.00)
+                                </div>
+                                <div class="flex align-center gap-2">
+                                    <span class="calendar-day active-payment" style="width:20px; height:20px; font-size:0;"></span>
+                                    <strong>Blue Highlight:</strong> Successfully Registered Payment Transaction Settle Date
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tuition breakdown assessment items -->
+                        <div class="card">
+                            <h4 class="filter-title" style="border-bottom:1px solid var(--border-color); padding-bottom:0.75rem; margin-bottom:1rem;">Tuition Fees Detailed Breakdown</h4>
+                            <div style="display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.9rem;">
+                                <div class="flex justify-between">
+                                    <span>First Semester (Tuition & Labs):</span>
+                                    <strong>₱18,200.00</strong>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Registration & Miscellaneous:</span>
+                                    <strong>₱6,800.00</strong>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Medical & Accident Insurance:</span>
+                                    <strong>₱1,500.00</strong>
+                                </div>
+                                <div class="flex justify-between" style="border-top:1px dashed var(--border-color); padding-top:0.75rem; font-weight:700; color:var(--sti-blue); font-size:1.05rem;">
+                                    <span>Total Assessment Cost:</span>
+                                    <span>₱26,500.00</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==========================================================================
+                 PAGE: CART DETAIL LIST PAGE
+                 ========================================================================== -->
+            <section id="page-cart" class="page-view">
+                <div class="cart-layout">
+                    <!-- Cart items list side -->
+                    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                        <div class="section-header" style="margin-bottom:0;">
+                            <h3>Shopping Cart Summary</h3>
+                            <button class="btn btn-outline" style="padding: 0.4rem 1rem;" onclick="clearCart()">Empty Cart</button>
+                        </div>
+                        <div class="cart-items-panel" id="cart-items-list-container">
+                            <!-- Dynamic -->
+                        </div>
+                    </div>
+
+                    <!-- Checkout Order summary panel -->
+                    <div class="card order-summary-box">
+                        <h4 class="filter-title" style="border-bottom:1px solid var(--border-color); padding-bottom:0.75rem; margin-bottom:1rem;">Cart Calculations</h4>
+                        
+                        <div class="summary-row">
+                            <span>Subtotal Selected Items:</span>
+                            <span id="cart-calc-subtotal">₱0.00</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Estimated Uniform Tax:</span>
+                            <span style="color:var(--success);">FREE</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Claim Point Location:</span>
+                            <span style="font-weight:600;">STI Bookstore Panel</span>
+                        </div>
+
+                        <div class="summary-row total">
+                            <span>Estimated Total:</span>
+                            <span id="cart-calc-total">₱0.00</span>
+                        </div>
+
+                        <button class="btn btn-secondary w-full" style="height: 48px; margin-top: 1.5rem;" onclick="switchPage('checkout')">
+                            PROCEED TO SECURE CHECKOUT
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==========================================================================
+                 PAGE: CHECKOUT / PLACE ORDER VIEW
+                 ========================================================================== -->
+            <section id="page-checkout" class="page-view checkout-view">
+                <div class="section-header">
+                    <h3>Secure Merchandise Checkout</h3>
+                </div>
+                
+                <div class="checkout-layout">
+                    <!-- Form Details Section -->
+                    <div class="card">
+                        <h4 class="filter-title" style="margin-bottom: 1.5rem;">Student Details Configuration</h4>
+                        
+                        <form id="checkout-form" onsubmit="event.preventDefault(); submitOrder();">
+                            <div class="grid grid-2 gap-2" style="margin-bottom: 1rem;">
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label for="ch-first-name">First Name</label>
+                                    <input type="text" id="ch-first-name" class="input-control" placeholder="John" required value="John">
+                                </div>
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label for="ch-last-name">Last Name</label>
+                                    <input type="text" id="ch-last-name" class="input-control" placeholder="Doe" required value="Doe">
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="ch-email">Registered Email Address</label>
+                                <input type="email" id="ch-email" class="input-control" placeholder="john.doe@student.sti.edu.ph" required value="john.doe@student.sti.edu.ph">
+                            </div>
+                            
+                            <div class="grid grid-2 gap-2" style="margin-bottom: 1rem;">
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label for="ch-student-id">Student ID / Number</label>
+                                    <input type="text" id="ch-student-id" class="input-control" placeholder="02000300183" required readonly>
+                                </div>
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label for="ch-section">Class Section</label>
+                                    <input type="text" id="ch-section" class="input-control" placeholder="BSCS-401A" required readonly>
+                                </div>
+                            </div>
+
+                            <!-- Pickup date display banner -->
+                            <div class="estimated-pickup-box">
+                                <div style="font-weight: 700; color: var(--sti-blue);">ESTIMATED STORES BOOKSTORE CLAIM DATE</div>
+                                <div class="pickup-date-display" id="checkout-pickup-date">September 29, 2026</div>
+                                <div style="font-size:0.75rem; color: var(--text-secondary); margin-top:0.25rem;">Claims are processed within 3 days after ordering and verified at the cashier desk.</div>
+                            </div>
+
+                            <button type="submit" class="btn btn-secondary w-full" style="height: 52px; margin-top: 2rem; font-size:1.1rem; box-shadow: var(--shadow-gold);">
+                                PLACE MERCHANDISE ORDER (CLAIM AT BOOKSTORE)
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Items Summary Card -->
+                    <div class="card order-summary-box">
+                        <h4 class="filter-title" style="border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem; margin-bottom: 1rem;">Items Checkout Review</h4>
+                        <div class="dropdown-items-list" id="checkout-items-summary-list" style="max-height: 350px;">
+                            <!-- Populate dynamically -->
+                        </div>
+                        <div class="summary-row total" style="border-top:1px solid var(--border-color); padding-top:1rem; margin-top:1rem; font-size:1.3rem; font-weight:800; color:var(--sti-blue);">
+                            <span>Final Total:</span>
+                            <span id="checkout-calc-total">₱0.00</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==========================================================================
+                 PAGE: ORDERS & TRACKING VIEW
+                 ========================================================================== -->
+            <section id="page-orders" class="page-view orders-view">
+                <div class="section-header">
+                    <h3>My Orders Tracker & History</h3>
+                </div>
+
+                <div class="orders-tabs">
+                    <button class="order-tab-btn active" onclick="filterOrders('all', this)">All Orders</button>
+                    <button class="order-tab-btn" onclick="filterOrders('Pending', this)">Pending</button>
+                    <button class="order-tab-btn" onclick="filterOrders('Ready', this)">Ready to Pickup</button>
+                    <button class="order-tab-btn" onclick="filterOrders('Claimed', this)">Claimed History</button>
+                </div>
+
+                <div class="orders-list" id="orders-list-container">
+                    <!-- Populate via JS -->
+                </div>
+            </section>
+
+            <!-- ==========================================================================
+                 PAGE: HELP CENTER & FAQS Accordion
+                 ========================================================================== -->
+            <section id="page-help" class="page-view help-view">
+                <div class="help-hero-banner">
+                    <h2>STIWS Support Center</h2>
+                    <div class="help-search">
+                        <input type="text" id="faq-search-input" placeholder="Have a question? Search FAQs about uniforms, size guide, claims..." onkeyup="handleFAQSearch(this.value)">
+                        <svg viewBox="0 0 24 24"><path d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z"/></svg>
+                    </div>
+                </div>
+
+                <div class="faq-container">
+                    <div class="section-header justify-center" style="margin-bottom: 2rem;">
+                        <h3>Frequently Asked Questions</h3>
+                    </div>
+                    
+                    <div id="faq-accordion-list">
+                        <!-- Dynamic FAQ list items -->
+                    </div>
+                </div>
+            </section>
+        </main>
+        <!-- GLOBAL APP FOOTER -->
+        <footer>
+            <div class="container" style="padding-top: 1.25rem; padding-bottom: 1.25rem;">
+                <div class="flex align-center justify-between wrap" style="gap: 1rem;">
+                    <div class="flex gap-4 wrap" style="font-size:0.85rem;">
+                        <a href="#" onclick="switchPage('home')" style="color:rgba(255,255,255,0.7);">Home</a>
+                        <a href="#" onclick="switchPage('shop')" style="color:rgba(255,255,255,0.7);">Shop</a>
+                        <a href="#" onclick="switchPage('tuition')" style="color:rgba(255,255,255,0.7);">Billing</a>
+                        <a href="#" onclick="switchPage('orders')" style="color:rgba(255,255,255,0.7);">Orders</a>
+                        <a href="#" onclick="switchPage('help')" style="color:rgba(255,255,255,0.7);">Help</a>
+                    </div>
+                    <span style="font-size:0.78rem; color:rgba(255,255,255,0.4);">&copy; 2026 STIPS. All rights reserved.</span>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+
+    <!-- ==========================================================================
+         POPUP OVERLAY 1: MERCHANDISE PRODUCT DETAIL PANEL
+         ========================================================================== -->
+    <div class="modal-overlay" id="product-details-modal">
+        <div class="modal-content">
+            <button class="close-modal-btn" onclick="closeProductModal()">×</button>
+            <div class="product-popup-layout">
+                <!-- Image Display Side -->
+                <div class="popup-img-side" id="popup-product-img">
+                    <!-- Dynamic SVG inserted -->
+                </div>
+                
+                <!-- Information Side -->
+                <div class="popup-info-side">
+                    <span class="product-cat" id="popup-product-cat">UNIFORMS</span>
+                    <h2 class="popup-name" id="popup-product-name">STIPS Polo Uniform</h2>
+                    
+                    <div class="flex align-center gap-2" style="margin-bottom:1rem;">
+                        <span class="badge badge-success" id="popup-product-stock">IN STOCK</span>
+                        <span style="font-size: 0.85rem; color: var(--text-secondary);" id="popup-product-stock-desc">Over 50 items available</span>
+                    </div>
+
+                    <div class="popup-price" id="popup-product-price">₱670.00</div>
+
+                    <!-- Description -->
+                    <p style="color:var(--text-secondary); font-size:0.9rem; margin-bottom:1.5rem; line-height:1.5;" id="popup-product-desc">
+                        Official premium STIPS button-up polo uniform made with comfortable breathable fabric, embroidery STIPS logo patch on pocket. Required for academic days.
+                    </p>
+
+                    <!-- Sizes Selector Options -->
+                    <div style="margin-bottom:1rem;">
+                        <div class="flex justify-between" style="font-weight:700; font-size:0.9rem; margin-bottom:0.5rem;">
+                            <span>Size Options:</span>
+                            <span id="popup-selected-size" style="color:var(--sti-blue);">M</span>
+                        </div>
+                        <div class="flex gap-2" id="popup-size-options">
+                            <button class="size-btn" onclick="selectPopupSize('S', this)">S</button>
+                            <button class="size-btn active" onclick="selectPopupSize('M', this)">M</button>
+                            <button class="size-btn" onclick="selectPopupSize('L', this)">L</button>
+                        </div>
+                    </div>
+
+                    <!-- Sizing Guide Recommendation Height Table -->
+                    <div class="size-guide-box">
+                        <div class="size-guide-title">STI Student Size Guide Recommendations</div>
+                        <table class="size-guide-table">
+                            <thead>
+                                <tr>
+                                    <th>Height Range</th>
+                                    <th>Body Type</th>
+                                    <th>Recommended Size</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>5'0" - 5'4" (152 - 163 cm)</td>
+                                    <td>Slim to Regular</td>
+                                    <td><strong>S (Small)</strong></td>
+                                </tr>
+                                <tr>
+                                    <td>5'5" - 5'9" (165 - 175 cm)</td>
+                                    <td>Regular to Athletic</td>
+                                    <td><strong>M (Medium)</strong></td>
+                                </tr>
+                                <tr>
+                                    <td>5'10"+ (178 cm and above)</td>
+                                    <td>Athletic to Broad</td>
+                                    <td><strong>L (Large)</strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Quantity Input and Cart Actions -->
+                    <div class="flex gap-3 align-center" style="margin-top:auto;">
+                        <div class="qty-input-group">
+                            <button class="qty-btn" onclick="adjustPopupQty(-1)">-</button>
+                            <span class="qty-display" id="popup-qty-display">1</span>
+                            <button class="qty-btn" onclick="adjustPopupQty(1)">+</button>
+                        </div>
+
+                        <button class="btn btn-primary flex-1" style="height: 48px;" onclick="addPopupProductToCart()">
+                            ADD TO SHOPPING CART
+                        </button>
+                        
+                        <button class="btn btn-outline btn-icon" id="popup-wishlist-heart" onclick="togglePopupProductWishlist()" style="width:48px; height:48px; border-radius:var(--radius-md);">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ==========================================================================
+         POPUP OVERLAY 2: TUITION LEDGER ONLINE PAYMENT POPUP
+         ========================================================================== -->
+    <div class="modal-overlay" id="tuition-payment-modal">
+        <div class="modal-content payment-modal">
+            <button class="close-modal-btn" onclick="closePaymentModal()">×</button>
+            
+            <div style="padding: 2.5rem;">
+                <h3 style="font-size: 1.5rem; color: var(--sti-blue); margin-bottom: 0.5rem; text-align: center;">STI Tuition Online Payment</h3>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); text-align: center; margin-bottom: 2rem;">Settle your educational dues securely through our verified digital partners.</p>
+                
+                <form id="payment-form" onsubmit="event.preventDefault(); processOnlinePayment();">
+                    <div class="form-group">
+                        <label>Current Outstanding Balance</label>
+                        <input type="text" class="input-control" id="pay-outstanding-display" readonly style="font-weight: 700; color: var(--danger); background-color: rgba(239, 68, 68, 0.05);">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="pay-amount-input">Payment Settle Amount (PHP)</label>
+                        <input type="number" id="pay-amount-input" class="input-control" placeholder="Enter amount, e.g. 6166" required min="1" step="1">
+                    </div>
+
+                    <div style="margin-bottom: 1.5rem;">
+                        <label style="display:block; font-size:0.85rem; font-weight:600; color:var(--text-secondary); margin-bottom:0.5rem;">Select Payment Gateway</label>
+                        
+                        <!-- GCash Option -->
+                        <div class="payment-plan-option selected" id="opt-gcash" onclick="selectPaymentGateway('gcash')">
+                            <div class="flex justify-between align-center">
+                                <div style="display:flex; align-items:center; gap: 0.5rem;">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" style="color: #0056B3;"><rect x="2" y="2" width="20" height="20" rx="4" fill="#0056B3"/><path d="M6 10h12v4H6z" fill="#FFF"/></svg>
+                                    <strong>GCash Mobile Wallet</strong>
+                                </div>
+                                <span class="badge badge-success" style="font-size:0.6rem;">0% Fee</span>
+                            </div>
+                        </div>
+
+                        <!-- PayMaya Option -->
+                        <div class="payment-plan-option" id="opt-maya" onclick="selectPaymentGateway('maya')">
+                            <div class="flex justify-between align-center">
+                                <div style="display:flex; align-items:center; gap: 0.5rem;">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" style="color: #10B981;"><rect x="2" y="2" width="20" height="20" rx="4" fill="#10B981"/><path d="M12 5l6 14H6l6-14z" fill="#FFF"/></svg>
+                                    <strong>Maya Pay & Credit</strong>
+                                </div>
+                                <span class="badge badge-success" style="font-size:0.6rem;">0% Fee</span>
+                            </div>
+                        </div>
+
+                        <!-- Card Option -->
+                        <div class="payment-plan-option" id="opt-card" onclick="selectPaymentGateway('card')">
+                            <div class="flex justify-between align-center">
+                                <div style="display:flex; align-items:center; gap: 0.5rem;">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--sti-blue);"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>
+                                    <strong>Visa / MasterCard Credit / Debit</strong>
+                                </div>
+                                <span class="badge badge-success" style="font-size:0.6rem;">0% Fee</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-full" style="height: 48px; box-shadow: var(--shadow-sm);">
+                        AUTHORIZE BILLING TRANSACTION
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ==========================================================================
+         TOAST FLOATING NOTIFICATIONS CONTAINER
+         ========================================================================== -->
+    <div class="toast-container" id="toast-holder">
+        <!-- Spawned Toast Notifications -->
+    </div>
+
+
+    <!-- Dynamic JS Logic App -->
+    <script src="app.js"></script>
+</body>
+</html>
+
