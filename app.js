@@ -405,8 +405,42 @@ function switchPage(pageId) {
         }, 50);
     }
     
+    // Populate dedicated utility pages whenever they are opened.
+    if (["notifications", "wishlist", "profile"].includes(pageId)) {
+        renderUtilityPage(pageId);
+    }
+
     // Close any floating headers dropdown panels
     toggleDropdown();
+}
+
+function renderUtilityPage(pageId) {
+    const money = value => `₱${Number(value || 0).toLocaleString("en-PH", {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+    if (pageId === "notifications") {
+        const target = document.getElementById("notifications-page-content");
+        if (!target) return;
+        target.innerHTML = AppState.notifications.length
+            ? `<div class="utility-row"><div><div class="utility-row-title">Recent updates</div><div class="utility-row-sub">Your latest portal notifications</div></div><button class="btn btn-outline" onclick="clearNotifications(); renderUtilityPage('notifications')">Clear all</button></div>` +
+              AppState.notifications.map(n => `<div class="utility-row"><div><div class="utility-row-title">${n.text}</div><div class="utility-row-sub">${n.date || ""}</div></div></div>`).join("")
+            : `<div class="text-center" style="padding:2rem 0;color:var(--text-secondary)">You're all caught up. No notifications right now.</div>`;
+    } else if (pageId === "wishlist") {
+        const target = document.getElementById("wishlist-page-content");
+        if (!target) return;
+        const items = AppState.wishlist.map(item => {
+            const product = PRODUCTS_DB.find(p => p.id === (typeof item === "string" ? item : item.id || item.productId));
+            return product ? `<div class="utility-row"><div><div class="utility-row-title">${product.name}</div><div class="utility-row-sub">${money(product.price)}</div></div><button class="btn btn-outline" onclick="switchPage('shop')">View shop</button></div>` : "";
+        }).join("");
+        target.innerHTML = items || `<div class="text-center" style="padding:2rem 0;color:var(--text-secondary)">Your wishlist is empty.<br><button class="btn btn-primary" style="margin-top:1rem" onclick="switchPage('shop')">Explore merchandise</button></div>`;
+    } else if (pageId === "profile") {
+        const target = document.getElementById("profile-page-content");
+        if (!target) return;
+        const user = AppState.currentUser || {};
+        target.innerHTML = `<div class="utility-row"><div><div class="utility-row-title">Student name</div><div class="utility-row-sub">${user.name || "Student"}</div></div></div>
+        <div class="utility-row"><div><div class="utility-row-title">Student ID</div><div class="utility-row-sub">${user.id || "Not available"}</div></div></div>
+        <div class="utility-row"><div><div class="utility-row-title">Program / Section</div><div class="utility-row-sub">${user.section || "Not available"}</div></div></div>
+        <div class="utility-row"><div><div class="utility-row-title">Email</div><div class="utility-row-sub">${user.email || "Not available"}</div></div></div>
+        <button class="btn btn-outline" style="margin-top:1rem" onclick="handleLogout()">Log out</button>`;
+    }
 }
 
 // ==========================================================================
